@@ -48,7 +48,7 @@ export default function Sidebar({ categories, currentCategory, setCurrentCategor
       <div className="mt-auto">
         <h3 className="text-gray-400 text-sm mb-2">Quick Actions</h3>
         <button className="w-full bg-gray-800 px-4 py-2 rounded-lg mb-2 hover:bg-gray-700">
-          Clear Chat
+          Log Out
         </button>
       </div>
     </div>
