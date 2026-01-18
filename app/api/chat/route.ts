@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import Groq from "groq-sdk";
 
-// ✅ FORCE NODE RUNTIME
 export const runtime = "nodejs";
 
 const groq = new Groq({
@@ -10,25 +9,30 @@ const groq = new Groq({
 
 export async function POST(req: Request) {
   try {
-    const { message, systemPrompt } = await req.json();
+    const body = await req.json();
+    const { messages } = body;
+
+    // 🔒 SAFETY CHECK
+    if (!messages || !messages[0]?.content) {
+      return NextResponse.json(
+        { error: "Message content missing" },
+        { status: 400 }
+      );
+    }
 
     const completion = await groq.chat.completions.create({
-      model: "llama3-8b-8192",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: message },
-      ],
+      model: "llama-3.3-70b-versatile",
+      messages: messages,
     });
 
     return NextResponse.json({
       reply: completion.choices[0].message.content,
     });
 
-  } catch (error) {
-    console.error("GROQ ERROR 👉", error);
-
+  } catch (error: any) {
+    console.error("Groq API Error:", error);
     return NextResponse.json(
-      { error: "AI failed to respond" },
+      { error: "Failed to get AI response" },
       { status: 500 }
     );
   }
