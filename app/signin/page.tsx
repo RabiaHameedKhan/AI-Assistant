@@ -31,7 +31,7 @@ export default function SignInPage() {
             <div className="flex justify-center mb-6">
               <div className="w-20 h-20 rounded-full bg-white flex items-center justify-center shadow-lg">
                 <Image
-                  src="/avatar.jpg"
+                  src="/aavatar.jpg"
                   alt="Neon AI"
                   width={48}
                   height={48}
@@ -42,7 +42,7 @@ export default function SignInPage() {
 
             {/* Title */}
             <h1 className="text-3xl font-semibold text-center text-white">
-              Welcome Back
+              Welcome 
             </h1>
 
             <p className="mt-2 text-center text-gray-300">
