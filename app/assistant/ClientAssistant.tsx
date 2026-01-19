@@ -138,23 +138,22 @@ export default function ClientAssistant() {
         {/* Chat Window */}
         <div className="flex-1 overflow-y-auto p-3 md:p-4 space-y-4 bg-gray-800 rounded-xl shadow-inner">
           {messages.map((msg, i) => (
-            <div
-              key={i}
-              className={`flex ${
-                msg.role === "user" ? "justify-end" : "justify-start"
-              }`}
-            >
-              <div
-                className={`px-4 py-2 rounded-2xl max-w-[85%] md:max-w-xs break-words ${
-                  msg.role === "user"
-                    ? "bg-violet-500 text-white shadow-[0_0_10px_#8c5eff]"
-                    : "bg-cyan-500 text-black shadow-[0_0_10px_#00ffff]"
-                }`}
-              >
-                {msg.content}
-              </div>
-            </div>
-          ))}
+  <div
+    key={i}
+    className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+  >
+    <div
+      className={`px-4 py-2 rounded-2xl max-w-[85%] md:max-w-xs break-words ${
+        msg.role === "user"
+          ? "bg-gradient-to-br from-gray-200 via-gray-100 to-gray-300 text-gray-900 shadow-md shadow-gray-400/40 border border-gray-300"
+          : "bg-cyan-500 text-black shadow-[0_0_10px_#00ffff]"
+      }`}
+    >
+      {msg.content}
+    </div>
+  </div>
+))}
+
 
           {/* Typing Indicator */}
           {isTyping && (
