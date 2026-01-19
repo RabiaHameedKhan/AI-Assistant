@@ -29,13 +29,13 @@ export default function SignInPage() {
 
             {/* Avatar */}
             <div className="flex justify-center mb-6">
-              <div className="w-20 h-20 rounded-full bg-white flex items-center justify-center shadow-lg">
+              <div className="w-20 h-20 rounded-full bg-black flex items-center justify-center shadow-lg">
                 <Image
                   src="/aavatar.jpg"
                   alt="Neon AI"
                   width={48}
                   height={48}
-                  className="object-contain"
+                  className="object-cover"
                 />
               </div>
             </div>

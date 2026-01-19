@@ -10,16 +10,17 @@ interface SidebarProps {
 
 export default function Sidebar({ categories, currentCategory, setCurrentCategory }: SidebarProps) {
   return (
-    <div className="w-64 bg-gray-900/90 text-white flex flex-col p-4">
+    <div className="w-64 h-full bg-gray-900/90 text-white flex flex-col p-4">
+
       {/* Full Avatar */}
       <div className="flex flex-col items-center mb-6">
-        <div className="w-24 h-24 rounded-full overflow-hidden flex items-center justify-center bg-white">
+        <div className="w-24 h-24 rounded-full overflow-hidden flex items-center justify-center bg-black">
   <Image
     src="/aavatar.jpg"
     alt="Neon AI"
     width={96}
     height={96}
-    className="object-contain"
+    className="object-cover"
     priority
   />
 </div>
@@ -43,6 +44,7 @@ export default function Sidebar({ categories, currentCategory, setCurrentCategor
           </button>
         ))}
       </div>
+<div className="flex-1" />
 
       {/* Optional: pinned quick actions */}
       <div className="mt-auto">
