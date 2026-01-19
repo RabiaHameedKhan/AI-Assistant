@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-
+import { signOut } from "next-auth/react";
 interface SidebarProps {
   categories: { label: string }[];
   currentCategory: string;
@@ -15,7 +15,7 @@ export default function Sidebar({ categories, currentCategory, setCurrentCategor
       <div className="flex flex-col items-center mb-6">
         <div className="w-24 h-24 rounded-full overflow-hidden flex items-center justify-center bg-white">
   <Image
-    src="/avatar.jpg"
+    src="/aavatar.jpg"
     alt="Neon AI"
     width={96}
     height={96}
@@ -47,7 +47,9 @@ export default function Sidebar({ categories, currentCategory, setCurrentCategor
       {/* Optional: pinned quick actions */}
       <div className="mt-auto">
         <h3 className="text-gray-400 text-sm mb-2">Quick Actions</h3>
-        <button className="w-full bg-gray-800 px-4 py-2 rounded-lg mb-2 hover:bg-gray-700">
+        <button 
+        onClick={() => signOut({ callbackUrl: "/" })}
+        className="w-full bg-gray-800 px-4 py-2 rounded-lg mb-2 hover:bg-gray-700">
           Log Out
         </button>
       </div>
