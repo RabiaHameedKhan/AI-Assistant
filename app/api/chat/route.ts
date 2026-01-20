@@ -1,8 +1,10 @@
+// app/api/chat/route.ts
 import { NextResponse } from "next/server";
 import Groq from "groq-sdk";
 import clientPromise from "../../../lib/mongodb";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
+import { Chat, ChatMessage } from "@/types/chat"; // ✅ Import your types
 
 export const runtime = "nodejs";
 
@@ -12,11 +14,11 @@ const groq = new Groq({
 
 export async function POST(req: Request) {
   try {
+    // ✅ Get logged-in user
     const session = await getServerSession(authOptions);
-
-    // ✅ DO NOT BLOCK RESPONSE
     const userId = session?.user?.id || "guest";
 
+    // ✅ Parse request body
     const body = await req.json();
     const { messages } = body;
 
@@ -27,6 +29,7 @@ export async function POST(req: Request) {
       );
     }
 
+    // ✅ Get AI response from Groq
     const completion = await groq.chat.completions.create({
       model: "llama-3.3-70b-versatile",
       messages,
@@ -34,36 +37,41 @@ export async function POST(req: Request) {
 
     const assistantReply = completion.choices[0].message.content;
 
-    // 🔹 Save in background
+    // 🔹 Save messages to MongoDB in background
     (async () => {
       try {
         const client = await clientPromise;
         const db = client.db("chatDB");
-        const chatCollection = db.collection("chats");
 
-        const userMessage = {
+        // ✅ Type your collection
+        const chatCollection = db.collection<Chat>("chats");
+
+        // ✅ Create typed message objects
+        const userMessage: ChatMessage = {
           role: "user",
           content: messages[messages.length - 1].content,
           timestamp: new Date().toISOString(),
         };
 
-        const assistantMessage = {
+        const assistantMessage: ChatMessage = {
           role: "assistant",
           content: assistantReply,
           timestamp: new Date().toISOString(),
         };
+
+        const newMessages: ChatMessage[] = [userMessage, assistantMessage];
 
         const chatDoc = await chatCollection.findOne({ userId });
 
         if (chatDoc) {
           await chatCollection.updateOne(
             { userId },
-            { $push: { messages: { $each: [userMessage, assistantMessage] } } }
+            { $push: { messages: { $each: newMessages } } }
           );
         } else {
           await chatCollection.insertOne({
             userId,
-            messages: [userMessage, assistantMessage],
+            messages: newMessages,
           });
         }
       } catch (err) {
@@ -71,10 +79,8 @@ export async function POST(req: Request) {
       }
     })();
 
-    // ✅ RESPONSE ALWAYS SENT
-    return NextResponse.json({
-      reply: assistantReply,
-    });
+    // ✅ Always send response immediately
+    return NextResponse.json({ reply: assistantReply });
 
   } catch (error) {
     console.error("Groq API Error:", error);
