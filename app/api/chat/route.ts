@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import Groq from "groq-sdk";
 import clientPromise from "../../../lib/mongodb";
+import { getServerSession } from "next-auth";
+import { authOptions } from "../auth/[...nextauth]/route";
 
 export const runtime = "nodejs";
 
@@ -10,6 +12,11 @@ const groq = new Groq({
 
 export async function POST(req: Request) {
   try {
+    const session = await getServerSession(authOptions);
+
+    // ✅ DO NOT BLOCK RESPONSE
+    const userId = session?.user?.id || "guest";
+
     const body = await req.json();
     const { messages } = body;
 
@@ -22,40 +29,32 @@ export async function POST(req: Request) {
 
     const completion = await groq.chat.completions.create({
       model: "llama-3.3-70b-versatile",
-      messages: messages,
+      messages,
     });
 
     const assistantReply = completion.choices[0].message.content;
 
-    // ---------------------------
-    // 1️⃣ Save chat to MongoDB in background (non-blocking)
-    // ---------------------------
+    // 🔹 Save in background
     (async () => {
       try {
         const client = await clientPromise;
         const db = client.db("chatDB");
-
-        // Use a fixed userId for now or get from your auth
-        const userId = body.userId; // get userId from frontend
-
         const chatCollection = db.collection("chats");
 
-        // User message
         const userMessage = {
           role: "user",
           content: messages[messages.length - 1].content,
           timestamp: new Date().toISOString(),
         };
 
-        // Assistant message
         const assistantMessage = {
           role: "assistant",
           content: assistantReply,
           timestamp: new Date().toISOString(),
         };
 
-        // Save user + assistant messages
         const chatDoc = await chatCollection.findOne({ userId });
+
         if (chatDoc) {
           await chatCollection.updateOne(
             { userId },
@@ -72,14 +71,12 @@ export async function POST(req: Request) {
       }
     })();
 
-    // ---------------------------
-    // 2️⃣ Return AI response (unchanged!)
-    // ---------------------------
+    // ✅ RESPONSE ALWAYS SENT
     return NextResponse.json({
       reply: assistantReply,
     });
 
-  } catch (error: any) {
+  } catch (error) {
     console.error("Groq API Error:", error);
     return NextResponse.json(
       { error: "Failed to get AI response" },

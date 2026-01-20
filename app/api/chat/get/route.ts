@@ -1,33 +1,33 @@
 import { NextResponse } from "next/server";
-import clientPromise from "../../../lib/mongodb";
+import { getServerSession } from "next-auth";
+import { authOptions } from "../../auth/[...nextauth]/route";
+import Chat from "@/lib/models/Chat";
+import mongoose from "mongoose";
 
-export const runtime = "nodejs";
-
-export async function GET(req: Request) {
+export async function GET() {
   try {
-    const url = new URL(req.url);
-    const userId = url.searchParams.get("userId"); // get userId from query
+    const session = await getServerSession(authOptions);
 
-    if (!userId) {
+    if (!session || !session.user?.id) {
       return NextResponse.json(
-        { error: "User ID missing" },
-        { status: 400 }
+        { error: "Unauthorized" },
+        { status: 401 }
       );
     }
 
-    const client = await clientPromise;
-    const db = client.db("chatDB");
-    const chatCollection = db.collection("chats");
+    await mongoose.connect(process.env.MONGODB_URI!);
 
-    const chatDoc = await chatCollection.findOne({ userId });
+    const chat = await Chat.findOne({
+      userId: session.user.id,
+    });
 
     return NextResponse.json({
-      messages: chatDoc?.messages || [],
+      messages: chat?.messages || [],
     });
-  } catch (err) {
-    console.error("Fetch chats error:", err);
+  } catch (error) {
+    console.error("Fetch Chat Error:", error);
     return NextResponse.json(
-      { error: "Failed to fetch chats" },
+      { error: "Internal Server Error" },
       { status: 500 }
     );
   }
