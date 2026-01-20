@@ -1,10 +1,9 @@
-// app/api/chat/route.ts
 import { NextResponse } from "next/server";
 import Groq from "groq-sdk";
 import clientPromise from "../../../lib/mongodb";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
-import { Chat, ChatMessage } from "@/types/chat"; // ✅ Import your types
+import { Chat, ChatMessage } from "@/types/chat";
 
 export const runtime = "nodejs";
 
@@ -14,11 +13,9 @@ const groq = new Groq({
 
 export async function POST(req: Request) {
   try {
-    // ✅ Get logged-in user
     const session = await getServerSession(authOptions);
     const userId = session?.user?.id || "guest";
 
-    // ✅ Parse request body
     const body = await req.json();
     const { messages } = body;
 
@@ -29,24 +26,19 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ Get AI response from Groq
     const completion = await groq.chat.completions.create({
       model: "llama-3.3-70b-versatile",
       messages,
     });
 
-    const assistantReply = completion.choices[0].message.content;
+    const assistantReply = completion.choices[0].message.content || "No response"; // ✅ fix null
 
-    // 🔹 Save messages to MongoDB in background
     (async () => {
       try {
         const client = await clientPromise;
         const db = client.db("chatDB");
-
-        // ✅ Type your collection
         const chatCollection = db.collection<Chat>("chats");
 
-        // ✅ Create typed message objects
         const userMessage: ChatMessage = {
           role: "user",
           content: messages[messages.length - 1].content,
@@ -79,9 +71,7 @@ export async function POST(req: Request) {
       }
     })();
 
-    // ✅ Always send response immediately
     return NextResponse.json({ reply: assistantReply });
-
   } catch (error) {
     console.error("Groq API Error:", error);
     return NextResponse.json(
